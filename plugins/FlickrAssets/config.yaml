@@ -1,0 +1,20 @@
+
+name: Flickr Assets
+description: Flickr Assets
+version: 0.5
+
+config_settings:
+    FlickrAssetsAPIKey:
+        default: ff93173329f03c00d269b7c0d05a456d
+    FlickrAssetsAPISecret:
+        default: d610ec8c4f242b9e
+
+object_types:
+    asset.flickr: FlickrAssets::FlickrAsset
+    flickr_asset: FlickrAssets::FlickrAsset
+
+settings:
+    authenticated_users:
+        scope: system
+    authorized_blog_users:
+        scope: blog

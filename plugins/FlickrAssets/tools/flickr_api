@@ -1,0 +1,65 @@
+#!/usr/bin/perl
+
+use lib qw( lib extlib );
+use lib qw( plugins/FlickrAssets/lib );
+
+use strict;
+use warnings;
+
+use base qw( MT::Tool );
+
+use XML::Simple;
+
+use FlickrAssets::Util qw( run_method run_auth_method );
+use Data::Dumper;
+
+my $method   = '';
+my $username = '';
+my %params   = ();
+
+sub options {
+    return (
+        'method=s'   => \$method,
+        'username=s' => \$username,
+        'params=s'   => \%params,
+    );
+}
+
+sub main {
+    my $class = shift;
+    $class->SUPER::main(@_);
+
+    if ( !$method ) {
+        print "method required\n";
+        exit;
+    }
+
+    my $out;
+    if ($username) {
+        my $p          = MT->component('flickrassets');
+        my $auth_users = $p->get_config_value('authenticated_users');
+        if ( !$auth_users->{$username} || !$auth_users->{$username}->{token} ) {
+            print "No token for $username\n";
+            exit;
+        }
+        $out = FlickrAssets::Util::_run_auth_method(
+            $method,
+            auth_token => $auth_users->{$username}->{token},
+            %params
+        );
+    }
+    else {
+        $out = run_method( $method, %params );
+    }
+    my $xml_ref = XMLin( $out, ForceArray => ['photo'], KeyAttr => [] );
+    if ( $xml_ref->{stat} eq 'fail' ) {
+        print "API Error: " . $xml_ref->{err}->{msg} . "\n";
+        exit;
+    }
+    print Dumper ($xml_ref);
+
+}
+
+__PACKAGE__->main() unless caller();
+
+1;

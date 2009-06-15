@@ -1,0 +1,91 @@
+#!/usr/bin/perl
+
+use lib qw( lib extlib );
+use lib qw( plugins/FlickrAssets/lib );
+
+use strict;
+use warnings;
+
+use base qw( MT::Tool );
+
+use XML::Simple;
+use FlickrAssets::Util qw( run_auth_method );
+
+my $blog_id  = 0;
+my $username = '';
+sub options { ( 'blog=i' => \$blog_id, 'username=s' => \$username ) }
+
+sub photo_to_url {
+    my %params = @_;
+
+    'http://farm'
+      . $params{farm}
+      . '.static.flickr.com/'
+      . $params{server} . '/'
+      . $params{id} . '_'
+      . $params{secret} . '.jpg';
+}
+
+sub main {
+    my $class = shift;
+    $class->SUPER::main(@_);
+
+    unless ($blog_id) {
+        print "blog_id required\n";
+        exit(1);
+    }
+
+    unless ($username) {
+        print "username required\n";
+        exit(1);
+    }
+
+    my $p          = MT->component('flickrassets');
+    my $auth_users = $p->get_config_value('authenticated_users');
+    my $author_id =
+      exists $auth_users->{$username}
+      ? $auth_users->{$username}->{author_id}
+      : 0;
+
+    my $out = run_auth_method(
+        BlogID   => $blog_id,
+        Username => $username,
+        Method   => 'flickr.photos.search',
+        Params   => {
+            user_id  => 'me',
+            per_page => 500,
+            extras   => 'tags,license'
+        }
+    );
+
+    die unless ($out);
+
+    my $xml_ref = XMLin( $out, ForceArray => ['photo'], KeyAttr => [] );
+
+    require FlickrAssets::FlickrAsset;
+
+    my $base_url = 'http://www.flickr.com/photos/';
+    for my $photo ( reverse @{ $xml_ref->{photos}->{photo} } ) {
+        my $fa = FlickrAssets::FlickrAsset->new;
+        $fa->blog_id($blog_id);
+        $fa->photo_id( $photo->{id} );
+        $fa->photo_secret( $photo->{secret} );
+        $fa->photo_title( $photo->{title} );
+        $fa->farm( $photo->{farm} );
+        $fa->server( $photo->{server} );
+        $fa->tags( split( /\s+/, $photo->{tags} ) );
+        $fa->owner( $photo->{owner} );
+        $fa->license( $photo->{license} );
+        $fa->created_by($author_id);
+
+        $fa->url( $base_url . $photo->{owner} . '/' . $photo->{id} );
+
+        $fa->save or die $fa->errstr;
+        sleep 1;
+    }
+
+}
+
+__PACKAGE__->main() unless caller();
+
+1;

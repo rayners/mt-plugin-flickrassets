@@ -1,0 +1,91 @@
+#!/usr/bin/perl
+
+use lib qw( lib extlib );
+use lib qw( plugins/FlickrAssets/lib );
+
+use strict;
+use warnings;
+
+use base qw( MT::Tool );
+
+use XML::Simple;
+
+use FlickrAssets::Util
+  qw( run_auth_method build_login_link authorize_blog_user );
+
+my $login        = 1;
+my $frob         = '';
+my $authenticate = 0;
+my $id           = 0;
+my $blog_id      = 0;
+my $username     = '';
+
+sub options {
+    return (
+        'login'        => \$login,
+        'frob=s'       => \$frob,
+        'authenticate' => \$authenticate,
+        'id=i'         => \$id,
+        'blog_id=i'    => \$blog_id,
+        'username=s'   => \$username,
+    );
+}
+
+sub main {
+    my $class = shift;
+    $class->SUPER::main(@_);
+
+    if ( $username && $blog_id ) {
+        authorize_blog_user( blog_id => $blog_id, username => $username );
+    }
+    elsif ($authenticate) {
+        if ( !$frob ) {
+            print "Frob required\n";
+            exit;
+        }
+
+        my $out = FlickrAssets::Util::_run_auth_method( 'flickr.auth.getToken',
+            frob => $frob );
+
+        my $xml_ref = XMLin( $out, ForceArray => ['photo'], KeyAttr => [] );
+
+        if ( $xml_ref->{stat} eq 'fail' ) {
+            print "API Error: " . $xml_ref->{err}->{msg} . "\n";
+            exit;
+        }
+
+        my $user  = $xml_ref->{auth}->{user}->{username};
+        my $nsid  = $xml_ref->{auth}->{user}->{nsid};
+        my $token = $xml_ref->{auth}->{token};
+
+        my $p                   = MT->component('flickrassets');
+        my $authenticated_users = $p->get_config_value('authenticated_users')
+          || {};
+        $authenticated_users->{$user} = { nsid => $nsid, token => $token };
+        $authenticated_users->{$user}->{author_id} = $id if ($id);
+        $p->set_config_value( 'authenticated_users', $authenticated_users );
+
+        print "Authentication token for $user saved!\n";
+
+    }
+    elsif ($login) {
+        my $out = FlickrAssets::Util::_run_auth_method('flickr.auth.getFrob');
+
+        my $xml_ref = XMLin( $out, ForceArray => ['photo'], KeyAttr => [] );
+        my $frob = $xml_ref->{frob};
+
+        my $link = build_login_link($frob);
+        print
+"Please visit the following url and authorize FlickrAssets:\n\n  $link\n";
+
+        print "Afterwards, please re-run flickr_auth:\n\n";
+        print
+          "  perl ./plugins/FlickrAssets/tools/flickr_auth -a -f \"$frob\"\n";
+
+    }
+
+}
+
+__PACKAGE__->main() unless caller();
+
+1;

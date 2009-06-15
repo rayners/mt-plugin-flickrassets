@@ -15,17 +15,6 @@ my $blog_id  = 0;
 my $username = '';
 sub options { ( 'blog=i' => \$blog_id, 'username=s' => \$username ) }
 
-sub photo_to_url {
-    my %params = @_;
-
-    'http://farm'
-      . $params{farm}
-      . '.static.flickr.com/'
-      . $params{server} . '/'
-      . $params{id} . '_'
-      . $params{secret} . '.jpg';
-}
-
 sub main {
     my $class = shift;
     $class->SUPER::main(@_);

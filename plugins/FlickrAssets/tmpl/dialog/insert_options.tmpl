@@ -1,0 +1,30 @@
+<mtapp:setting
+    id='size'
+    label='Size'>
+    <select name="size" id="size">
+        <option value='o'>Original</option>
+        <option value='b'>Large (1024 on longest side)</option>
+        <option value=''>Medium (500 on longest side)</option>
+        <option value='m'>Small (240 on longest side)</option>
+        <option value='t'>Thumbnail (100 on longest side)</option>
+        <option value='s'>Small square (75x75)</option>
+    </select>
+</mtapp:setting>
+<mtapp:setting
+    id="alignment"
+    label="<__trans phrase="Alignment">"
+    hint=""
+    show_hint="0">
+    <input type="radio" name="align" id="align-none" class="rb" value="none" <mt:if name="align_none">checked="checked" </mt:if>/>
+    <label for="align-none" class="icon-left icon-left-xwide icon-align icon-align-none"><__trans phrase="None"></label>
+
+    <input type="radio" name="align" id="align-left" class="rb" value="left" <mt:if name="align_left">checked="checked" </mt:if>/>
+    <label for="align-left" class="icon-left-xwide icon-align icon-align-left"><__trans phrase="Left"></label>
+
+    <input type="radio" name="align" id="align-center" class="rb" value="center" <mt:if name="align_center">checked="checked" </mt:if>/>
+    <label for="align-center" class="icon-left-xwide icon-align icon-align-center"><__trans phrase="Center"></label>
+
+    <input type="radio" name="align" id="align-right" class="rb" value="right" <mt:if name="align_right">checked="checked" </mt:if>/>
+    <label for="align-right" class="icon-left-xwide icon-align icon-align-right"><__trans phrase="Right"></label>
+</mtapp:setting>
+

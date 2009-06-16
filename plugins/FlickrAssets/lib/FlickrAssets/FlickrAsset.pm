@@ -8,11 +8,11 @@ __PACKAGE__->install_properties(
     {
         class_type  => 'flickr',
         column_defs => {
-            photo_id => 'integer indexed meta',
-            server  => 'integer meta',
-            farm    => 'integer meta',
-            license => 'integer indexed meta',
-            owner   => 'string indexed meta'
+            photo_id => 'string indexed meta',
+            server   => 'integer meta',
+            farm     => 'integer meta',
+            license  => 'integer indexed meta',
+            owner    => 'string indexed meta'
         },
     }
 );

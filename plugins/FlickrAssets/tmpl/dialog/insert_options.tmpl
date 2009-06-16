@@ -2,9 +2,9 @@
     id='size'
     label='Size'>
     <select name="size" id="size">
-        <option value='o'>Original</option>
+<!--        <option value='o'>Original</option> -->
         <option value='b'>Large (1024 on longest side)</option>
-        <option value=''>Medium (500 on longest side)</option>
+        <option value='' selected="selected">Medium (500 on longest side)</option>
         <option value='m'>Small (240 on longest side)</option>
         <option value='t'>Thumbnail (100 on longest side)</option>
         <option value='s'>Small square (75x75)</option>
@@ -28,3 +28,11 @@
     <label for="align-right" class="icon-left-xwide icon-align icon-align-right"><__trans phrase="Right"></label>
 </mtapp:setting>
 
+<mtapp:setting
+  id="attribution"
+  label="<__trans phrase="Attribution">"
+  hint=""
+  show_hint="0">
+  <mt:if name="attribution_required"><input type="hidden" name="attribution" id="attribution" value="1" /></mt:if>
+  <input name="attribution" id="attribution" type="checkbox" checked="checked"<mt:if name="attribution_required"> disabled="true"</mt:if>><label for="attribution"> Attribute photo</label>
+</mtapp:setting>

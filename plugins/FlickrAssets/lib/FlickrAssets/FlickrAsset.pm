@@ -4,6 +4,8 @@ package FlickrAssets::FlickrAsset;
 use strict;
 use base qw( MT::Asset );
 
+use FlickrAssets::Util qw( get_user_info );
+
 __PACKAGE__->install_properties(
     {
         class_type  => 'flickr',
@@ -38,7 +40,7 @@ sub thumbnail_url {
     my $obj = shift;
     my (%params) = @_;
 
-    my $size = 's';
+    my $size;
 
     if ( $params{size} ) {
         $size = $params{size};
@@ -100,11 +102,19 @@ q{style="text-align: center; display: block; margin: 0 auto 20px;"};
         }
 
     }
-    my $text = sprintf '<a href="%s"><img src="%s" title="%s" %s /></a>',
-      MT::Util::encode_html( $asset->url ),
+
+    my $attribution;
+    if ( $params->{attribution} ) {
+        my $xml_ref = get_user_info( $asset->owner );
+        $attribution = sprintf '<p>Photo by <a href="%s">%s</a>.</p>',
+          MT::Util::encode_html( $xml_ref->{person}->{photosurl} ),
+          MT::Util::encode_html( $xml_ref->{person}->{realname} );
+    }
+    my $text =
+      sprintf '<div %s ><a href="%s"><img src="%s" title="%s" /></a>%s</div>',
+      $wrap_style, MT::Util::encode_html( $asset->url ),
       MT::Util::encode_html( $asset->thumbnail_url(%$params) ),
-      MT::Util::encode_html( $asset->label ),
-      $wrap_style;
+      MT::Util::encode_html( $asset->label ), $attribution;
     return $asset->enclose($text);
 }
 
@@ -112,8 +122,9 @@ sub insert_options {
     my $asset = shift;
     my ($param) = @_;
 
-    my $app = MT->instance;
+    my $app    = MT->instance;
     my $plugin = MT->component('flickrassets');
+    $param->{attribution_required} = $asset->license != '7';
     my $tmpl = $plugin->load_tmpl( 'dialog/insert_options.tmpl', $param )
       or MT->log( $plugin->errstr );
     my $html = $app->build_page( $tmpl, $param );

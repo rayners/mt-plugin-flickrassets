@@ -6,7 +6,7 @@ use warnings;
 
 use base qw( Exporter );
 
-our @EXPORT_OK = qw( run_method get_user_id build_login_link run_auth_method authorize_blog_user );
+our @EXPORT_OK = qw( run_method get_user_id build_login_link run_auth_method authorize_blog_user get_user_info );
 
 use Digest::MD5 qw( md5_hex );
 use XML::Simple;
@@ -146,6 +146,13 @@ sub get_user_id {
     my $xml_ref = XMLin($out);
 
     return $xml_ref->{user}->{nsid};
+}
+
+sub get_user_info {
+    my ($user_id) = @_;
+    my $out = run_method ('flickr.people.getInfo', user_id => $user_id);
+    my $xml_ref = XMLin($out);
+    return $xml_ref;
 }
 
 1;

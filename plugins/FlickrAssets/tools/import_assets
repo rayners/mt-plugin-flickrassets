@@ -41,6 +41,7 @@ sub main {
         Username => $username,
         Method   => 'flickr.photos.search',
         Params   => {
+            sort     => 'date-posted-asc',
             user_id  => 'me',
             per_page => 500,
             extras   => 'tags,license'
@@ -54,7 +55,7 @@ sub main {
     require FlickrAssets::FlickrAsset;
 
     my $base_url = 'http://www.flickr.com/photos/';
-    for my $photo ( reverse @{ $xml_ref->{photos}->{photo} } ) {
+    for my $photo ( @{ $xml_ref->{photos}->{photo} } ) {
         my $fa = FlickrAssets::FlickrAsset->new;
         $fa->blog_id($blog_id);
         $fa->photo_id( $photo->{id} );

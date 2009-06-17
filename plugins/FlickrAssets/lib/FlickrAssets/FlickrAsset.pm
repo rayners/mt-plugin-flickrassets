@@ -47,6 +47,7 @@ sub thumbnail_url {
     }
     else {
         $size = 'm' if ( $params{Height} == 240 );
+        $size = 's' if ( $params{Height} == 75 );
     }
 
     if ($size) {
